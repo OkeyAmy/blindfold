@@ -119,8 +119,14 @@ def scan_file(path: Path) -> FileResult | None:
     lang = EXT_TO_LANG.get(path.suffix.lower())
     if lang is None:
         return None
-    lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    text = path.read_text(encoding="utf-8", errors="replace")
     result = FileResult(path=str(path), lang=lang)
+    # File-level opt-out: a legacy file you have not migrated yet declares it once and
+    # is skipped entirely. Checked before per-line scanning so the marker line itself is
+    # never mistaken for an unjustified tag.
+    if "blindfold: ignore" in text:
+        return result
+    lines = text.splitlines()
     for i, line in enumerate(lines):
         if not has_expected_literal(line, lang) or is_trivial(line, lang):
             continue

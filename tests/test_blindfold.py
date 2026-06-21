@@ -79,6 +79,23 @@ def main() -> int:
     else:
         failures.append(f"multi-lang coverage: want {want_langs}, got {langs}")
 
+    # file-level opt-out: a file declaring `blindfold: ignore` is skipped entirely,
+    # even though it contains an otherwise-unjustified literal.
+    import tempfile
+    total += 1
+    with tempfile.NamedTemporaryFile("w", suffix="_test.py", delete=False) as tf:
+        tf.write("# blindfold: ignore\ndef test_x():\n    assert tax(1000) == 230.0\n")
+        ignored_path = Path(tf.name)
+    try:
+        r = blindfold.scan_file(ignored_path)
+        if r is not None and r.findings == []:
+            passed += 1
+        else:
+            findings = None if r is None else r.findings
+            failures.append(f"ignore marker: want no findings, got {findings}")
+    finally:
+        ignored_path.unlink(missing_ok=True)
+
     print(f"{passed}/{total} checks passed")
     for f in failures:
         print(f"  - {f}")

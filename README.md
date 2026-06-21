@@ -36,14 +36,35 @@ It pairs with [smoke-alarm](https://github.com/OkeyAmy/smoke-alarm): smoke-alarm
 *"is the thing it checks against actually true, and how do you know?"* Different
 questions, same goal — tests that can fail for the right reason.
 
+## Install
+
+```bash
+git clone https://github.com/OkeyAmy/blindfold
+cd blindfold
+./install.sh          # copies skill to all present tool dirs, registers PostToolUse hook
+./install.sh doctor   # verify install + Python version + self-tests
+./install.sh uninstall
+```
+
+**What install does:**
+- Copies the skill to `~/.claude/skills/blindfold/`, `~/.codex/skills/blindfold/`, and
+  any other AI tool directories it finds.
+- Registers a `PostToolUse` hook in your agent's config so blindfold fires automatically
+  on every `Write`/`Edit` to a test file — no human trigger needed.
+
+Requires Python ≥ 3.8. No dependencies beyond the standard library.
+
 ## Use
 
 ```bash
-python3 src/blindfold.py check path/to/tests        # human report, exit 1 if any unjustified
-python3 src/blindfold.py check path/to/tests --json  # machine-readable
+# check a file manually (human report, exit 1 if any unjustified/confessed)
+python3 src/blindfold.py check path/to/tests
+
+# machine-readable JSON output
+python3 src/blindfold.py check path/to/tests --json
 ```
 
-Languages: Python, TypeScript/JavaScript, Go, Rust. Requires Python ≥ 3.9.
+Languages: Python, TypeScript/JavaScript, Go, Rust.
 
 ## The grammar
 
@@ -61,16 +82,41 @@ A reason is a comment tag on the assertion line, or the comment line directly ab
 
 Trivial literals (`0`, `1`, `-1`, `""`, `true`, `false`) need no reason.
 
+## Strict by design
+
+blindfold flags **every** non-trivial expected literal, not just ones that "look magic."
+`assert status == 200`, `assert len(items) == 25`, `assert role == "admin"` all need a
+tag. This is deliberate: *every* expected value is a claim about correct behaviour, and
+"it's obvious" is how a wrong value sneaks through. If `200` is the documented success
+code, say so once — `# blindfold: standard — HTTP 200 OK` — and the claim is now on the
+record for the next reader. A discipline that exempts "obvious" values stops being a
+discipline.
+
+The cost is real: on a fresh suite, expect to tag a lot. Two escape hatches keep that
+survivable:
+
+- **Per file:** put `blindfold: ignore` in a comment anywhere in a file and blindfold
+  skips it entirely. Use this on legacy tests you have not migrated yet.
+- **Per value:** trivial literals are always exempt.
+
+**Adopting on an existing codebase:** drop `# blindfold: ignore` at the top of every
+current test file, then remove the marker file-by-file as you migrate. New test files get
+the discipline from day one; old ones are opt-in. No flood, no big-bang rewrite.
+
 ## As an agent skill
 
-Install `SKILL.md` into your AI tool's skills directory so the agent adopts the
-discipline while writing tests: decide the expected value from intent first, annotate
-it, run `blindfold check`, fix anything unjustified or confessed.
+After `./install.sh`, the `SKILL.md` is in your tool's skills directory and a
+`PostToolUse` hook runs blindfold on every test file the agent writes. The agent
+sees the verdict immediately and must justify or remove the flagged value before
+continuing. No script to remember to run — the discipline is internal.
+
+Tool compatibility: Claude Code, Codex, Cursor, any tool that loads skills from
+`~/.claude/skills/`, `~/.codex/skills/`, `~/.agents/skills/`, or `~/.cursor/skills/`.
 
 ## Self-test
 
 ```bash
-python3 tests/test_blindfold.py   # 5/5 — justified / unjustified / confessed / trivial
+python3 tests/test_blindfold.py   # 8/8 — python + ts/go/rust + file-level ignore
 ```
 
 ## Honest limits

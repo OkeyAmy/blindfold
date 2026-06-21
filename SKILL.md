@@ -48,6 +48,11 @@ look at output.
   correct behaviour; rewrite it against the real intended value.
 - The reason is documentation. Write it so a reviewer who never saw the code understands
   why the value is correct.
+- blindfold is **strict**: every non-trivial expected literal needs a tag, including
+  ones that feel obvious (`status == 200`, `len == 25`). "Obvious" is how wrong values
+  slip through — state the claim once. Only `0`, `1`, `-1`, `""`, `true`, `false` are exempt.
+- To skip a legacy file you have not migrated, put `blindfold: ignore` in a comment in
+  it. Do not use this to dodge writing a reason on new tests.
 
 Pairs with **smoke-alarm** (does the test check anything, and does it die when the code
 breaks?). blindfold answers the other half: is what it checks against actually true, and
