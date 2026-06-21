@@ -35,8 +35,11 @@ look at output.
 
 3. **Check yourself:**
    ```
-   python3 <blindfold-dir>/src/blindfold.py check <test-file>
+   blindfold check <test-file>
    ```
+   (After install there is a `blindfold` command on your PATH — run it from inside any
+   project. If it is not on PATH, fall back to `python3 <blindfold-dir>/src/blindfold.py
+   check <test-file>`.)
    Fix every `UNJUSTIFIED` (you asserted a magic value with no reason) and every
    `CONFESSED` (you admitted it came from output). Re-run until clean.
 

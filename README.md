@@ -56,13 +56,15 @@ Requires Python ≥ 3.8. No dependencies beyond the standard library.
 
 ## Use
 
-```bash
-# check a file manually (human report, exit 1 if any unjustified/confessed)
-python3 src/blindfold.py check path/to/tests
+After `./install.sh` there is a `blindfold` command on your PATH — any agent, in any
+project, runs:
 
-# machine-readable JSON output
-python3 src/blindfold.py check path/to/tests --json
+```bash
+blindfold check path/to/tests          # human report, exit 1 if any unjustified/confessed
+blindfold check path/to/tests --json   # machine-readable
 ```
+
+Without installing (from a clone), the equivalent is `python3 src/blindfold.py check …`.
 
 Languages: Python, TypeScript/JavaScript, Go, Rust.
 
