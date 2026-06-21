@@ -146,10 +146,11 @@ do_doctor() {
   done
   if command -v python3 >/dev/null 2>&1; then
     echo; c_dim "running self-tests..."
-    if python3 "$SRC/tests/test_blindfold.py" >/dev/null 2>&1; then
-      c_grn "self-tests pass"
+    if python3 "$SRC/tests/test_blindfold.py" >/dev/null 2>&1 \
+       && python3 "$SRC/tests/test_ast_scan.py" >/dev/null 2>&1; then
+      c_grn "self-tests pass (classifier + Python AST scanner)"
     else
-      c_red "self-tests FAILED — run: python3 tests/test_blindfold.py"; ok=1
+      c_red "self-tests FAILED — run: python3 tests/test_blindfold.py && python3 tests/test_ast_scan.py"; ok=1
     fi
   fi
   return $ok

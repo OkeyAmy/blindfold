@@ -126,6 +126,15 @@ def scan_file(path: Path) -> FileResult | None:
     # never mistaken for an unjustified tag.
     if "blindfold: ignore" in text:
         return result
+    if lang == "python":
+        # Python gets a real AST scanner: it flags expected literals only in actual
+        # assertions, never in `if`/`__main__`/string-literal false positives. On a
+        # syntax error we fall back to the regex scan rather than crash.
+        try:
+            from ast_scan import scan_python
+            return scan_python(path, text)
+        except SyntaxError:
+            pass
     lines = text.splitlines()
     for i, line in enumerate(lines):
         if not has_expected_literal(line, lang) or is_trivial(line, lang):

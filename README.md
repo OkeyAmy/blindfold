@@ -119,7 +119,18 @@ Tool compatibility: Claude Code, Codex, Cursor, any tool that loads skills from
 
 ```bash
 python3 tests/test_blindfold.py   # 8/8 — python + ts/go/rust + file-level ignore
+python3 tests/test_ast_scan.py    # 10/10 — Python AST: ignores non-assertions, catches real ones
 ```
+
+## How detection works
+
+- **Python: AST-based.** blindfold parses the file and inspects only real assertions
+  (`assert a == b`, the `assertEqual` family). It does **not** flag `==` in an `if`, the
+  `if __name__ == "__main__"` guard, or `==` that appears inside a string literal — those
+  are not assertions. It reads the expected literal's exact line, so a tag works even in a
+  multi-line assertion.
+- **TypeScript / Go / Rust: line-regex** (a tag may need to sit on the literal's line).
+  These get the AST treatment as it lands per language.
 
 ## Honest limits
 
@@ -129,8 +140,6 @@ python3 tests/test_blindfold.py   # 8/8 — python + ts/go/rust + file-level ign
 - It trusts your tag. `blindfold: spec` on a value you actually copied from output will
   pass — but you had to lie in writing to do it, and that lie is now in the diff for a
   reviewer to catch. Making dishonesty explicit is the point.
-- Detection is line-based, not AST. Multi-line assertions may need the tag on the line
-  with the literal.
 
 ## License
 
